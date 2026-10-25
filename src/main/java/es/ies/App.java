@@ -21,6 +21,8 @@ public class App extends Application {
     private ComboBox<String> comboFiltrar;
     private TextField campoTexto;
     private TextField cuadroBusqueda;
+    private TextField ponerNombre;
+    private TextField ponerDescripcion;
     private Button botonAñadir;
     private Label mensaje;
     private ListView<String> listaIncidencias;
@@ -33,6 +35,10 @@ public class App extends Application {
     private Label contEnProceso;
     private Label contadorAbiertos;
     private Label notificaciones;
+    private int contIncid = 0;
+    private int contRes = 0;
+    private int contEnProc = 0;
+    private int contAb = 0;
 
     public void start(Stage stage) throws Exception {
 
@@ -40,7 +46,7 @@ public class App extends Application {
         titulo.setStyle("-fx-font-size: 25px; -fx-font-weight: bold;");
 
         comboFiltrar = new ComboBox<>();
-        comboFiltrar.getItems().addAll("Abierta", "En proceso ", "Cerrada");
+        comboFiltrar.getItems().addAll("Abierta", "En proceso ","Resuelta");
         comboFiltrar.setPromptText("Filtrar por estado");
 
         cuadroBusqueda = new TextField();
@@ -56,6 +62,7 @@ public class App extends Application {
 
         botonAñadir = new Button("Añadir tarea");
         botonAñadir.setDefaultButton(true);
+        botonAñadir.setOnAction(e -> aniadirIncidencia(new Stage()));
 
         HBox formulario = new HBox(10,
                 new Label("Nueva incidencia:"),
@@ -84,10 +91,10 @@ public class App extends Application {
         HBox ListaYBotones = new HBox(20, listaIncidencias, botonesAccion);
         ListaYBotones.setAlignment(Pos.CENTER);
 
-        contIncidencias = new Label("Incidencias:  " + "contadorIncidencias");
-        contResueltas = new Label(" Resueltas:  " + "contadorResueltas");
-        contEnProceso = new Label(" En proceso:  " + "contadorEnProceso");
-        contadorAbiertos = new Label(" Abiertas:  " + "contadorAbiertos");
+        contIncidencias = new Label("Incidencias:  " + contIncid);
+        contResueltas = new Label(" Resueltas:  " + contRes);
+        contEnProceso = new Label(" En proceso:  " + contEnProc);
+        contadorAbiertos = new Label(" Abiertas:  " + contAb);
         notificaciones = new Label("Se ha guardado algo");
 
         // He usado la IA para asegurarme de como poner un borde a los label y dejar el
@@ -140,6 +147,86 @@ public class App extends Application {
         stage.setScene(scene); // Asigno el contenido (scene) a la ventana (stage)
         stage.show();
 
+    }
+
+    private void aniadirIncidencia (Stage stage){
+        ponerNombre = new TextField();
+        ponerNombre.setPromptText("¿Cuál es la nueva incidencia?");
+        ponerNombre.setPrefWidth(500);
+
+        ComboBox<String> comboEstado = new ComboBox<>();
+        comboEstado.getItems().addAll("Abierta", "En proceso ","Resuelta");
+        comboEstado.setPromptText("Estado de la incidencia");
+
+        HBox nombreYestado = new HBox (30,
+            new Label("Nombre de la incidencia:"),
+            ponerNombre,
+            comboEstado
+        );
+        nombreYestado.setAlignment(Pos.CENTER);
+
+        ponerDescripcion =  new TextField();
+        ponerDescripcion.setPrefWidth(600);
+        ponerDescripcion.setPrefHeight(300);
+
+        HBox descripcion = new HBox (30,
+            new VBox (6,
+                new Label("Descripción de la incidencia:"),
+                ponerDescripcion
+            )
+        );
+        descripcion.setAlignment(Pos.CENTER);
+
+        Button aniadir = new Button("Añadir");
+        aniadir.setOnAction(e -> confirmarAniadir(
+            ponerNombre.getText(),
+            ponerDescripcion.getText(),
+            comboEstado.getValue(),
+            stage
+            )
+         );
+        Button cancelar = new Button("Cancelar");
+        cancelar.setOnAction(e -> cancelar(stage));
+
+        HBox aniadirYcancelar = new HBox(10,
+            aniadir,
+            cancelar
+        );
+        aniadirYcancelar.setAlignment(Pos.CENTER);
+
+        VBox formIncidencia = new VBox(14,
+            nombreYestado,
+            descripcion,
+            aniadirYcancelar
+        );
+        formIncidencia.setPadding(new Insets(20));
+
+        Scene scene = new Scene(formIncidencia, 900, 350);
+        stage.setTitle("Nueva incidencia");
+        stage.setScene(scene);
+        stage.setResizable(false); // Esto lo he buscado en intrnet que no estaba seguro de cómo se hacía
+        stage.show();
+    }
+
+    private void cancelar(Stage stage){
+        stage.close();
+    }
+
+    private void confirmarAniadir(String nom, String desc, String estado,Stage stage){
+        listaIncidencias.getItems().addAll("["+estado+"] "+nom);
+        contIncid++;
+        switch (estado) {
+            case "Abierta" :
+                contAb++;
+                break;
+            case "En proceso ":
+                contEnProc++;
+                break;
+            case "Resuelta":
+                contRes++;
+                break;
+        }
+        stage.close();
     }
 
     private void mostrarMensaje(String text) {
