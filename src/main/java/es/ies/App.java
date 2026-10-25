@@ -37,6 +37,13 @@ public class App extends Application {
         Label titulo = new Label("Gestión de Incidencias");
         titulo.setStyle("-fx-font-size: 25px; -fx-font-weight: bold;");
 
+
+        comboFiltrar = new ComboBox<>();
+        comboFiltrar.getItems().addAll("Abierta", "En proceso ", "Cerrada");
+        comboFiltrar.setPromptText("Filtrar por estado");
+
+        HBox header = new HBox(titulo, comboFiltrar);
+
         campoTexto = new TextField();
         campoTexto.setPromptText("Ingrese el nombre de la incidencia");
 
@@ -72,18 +79,22 @@ public class App extends Application {
         contadorAbiertos = new Label(" Abiertas:  " + "contadorAbiertos");
         notificaciones = new Label("Se ha guardado algo");
 
+        // He usado la IA para asegurarme de como poner un borde a los label
+        contIncidencias.setStyle("-fx-border-color:black; -fx-border-width: 2px");
+        contResueltas.setStyle("-fx-border-color:black; -fx-border-width: 2px");
+        contEnProceso.setStyle("-fx-border-color:black; -fx-border-width: 2px");
+        contadorAbiertos.setStyle("-fx-border-color:black; -fx-border-width: 2px");
+
         VBox contadoresIzq = new VBox(5, contIncidencias, contResueltas);
         VBox contadoresDer = new VBox(5, contEnProceso, contadorAbiertos);
 
         HBox contadores = new HBox(20, contadoresIzq, contadoresDer, notificaciones);
 
-
         VBox raiz = new VBox(14,
-                titulo,
+                header,
                 formulario,
                 ListaYBotones,
-                contadores
-            );
+                contadores);
 
         Scene scene = new Scene(raiz, 820, 500);
         stage.setTitle("Gestor de tareas en JavaFX"); // Le pongo título a la ventana
@@ -99,6 +110,6 @@ public class App extends Application {
     public static void main(String[] args) {
         launch();
 
-        //Comentario para probar primer push gitHub
+        // Comentario para probar primer push gitHub
     }
 }
