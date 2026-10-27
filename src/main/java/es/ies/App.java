@@ -48,7 +48,7 @@ public class App extends Application {
         titulo.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
 
         comboFiltrar = new ComboBox<>();
-        comboFiltrar.getItems().addAll("Abierta", "En proceso ", "Resuelta");
+        comboFiltrar.getItems().addAll("Abierta", "En proceso ", "Resuelta", "Todas");
         comboFiltrar.setPromptText("Filtrar por estado");
 
         cuadroBusqueda = new TextField();
@@ -100,12 +100,13 @@ public class App extends Application {
                 cambiarEstado = new Button("Cambiar estado"),
                 limpiarResueltas = new Button("Limpiar resueltas"),
                 eliminarIncidencia = new Button("Eliminar incidencia"));
-
         consultarDatos.setPrefSize(130, 50);
         cambiarEstado.setPrefSize(130, 50);
+        cambiarEstado.setOnAction(e -> cambiarEstado(new Stage()));
         limpiarResueltas.setPrefSize(130, 50);
+        limpiarResueltas.setOnAction(e -> limpiarRes());
         eliminarIncidencia.setPrefSize(130, 50);
-        eliminarIncidencia.setOnAction(e -> borrar());
+        eliminarIncidencia.setOnAction(e -> borrar(listaIncidencias.getSelectionModel().getSelectedIndex()));
         botonesAccion.setAlignment(Pos.CENTER);
 
         HBox ListaYBotones = new HBox(20, listaIncidencias, botonesAccion);
@@ -182,11 +183,14 @@ public class App extends Application {
     private void aniadirIncidencia(Stage stage) {
         ponerNombre = new TextField();
         ponerNombre.setPromptText("¿Cuál es la nueva incidencia?");
+        ponerNombre.setText(campoTexto.getText());
         ponerNombre.setPrefWidth(500);
+        //El TextField ponerNombre esta si el usuario no pone nombre o quiere poner un nombre distinto
+        //a la incidencia despues de poner el nombre en el TextField campotexto
 
         ComboBox<String> comboEstado = new ComboBox<>();
         comboEstado.getItems().addAll("Abierta", "En proceso ", "Resuelta");
-        comboEstado.setPromptText("Estado de la incidencia");
+        comboEstado.setValue("Abierta");
 
         HBox nombreYestado = new HBox(30,
                 new Label("Nombre de la incidencia:"),
@@ -231,10 +235,6 @@ public class App extends Application {
         stage.show();
     }
 
-    private void cancelar(Stage stage) {
-        stage.close();
-    }
-
     private void confirmarAniadir(String nom, String desc, String estado, Stage stage) {
         listaIncidencias.getItems().addAll("[" + estado + "] " + nom);
         contIncid++;
@@ -260,18 +260,122 @@ public class App extends Application {
         stage.close();
     }
 
-    public void borrar(){
-        int ind = listaIncidencias.getSelectionModel().getSelectedIndex();
+    public void borrar(int ind){
+        listaIncidencias.getSelectionModel().getSelectedIndex();
+        String estado = incidencias.get(ind).getEstado();
+        contIncid--;
+        switch (estado) {
+            case "Abierta":
+                contAb--;
+                contadorAbiertos.setText(" Abiertas:  " + "                                  " + contAb);
+                break;
+            case "En proceso ":
+                contEnProc--;
+                contEnProceso.setText(" En Proceso:  " + "                              " + contEnProc);
+                break;
+            case "Resuelta":
+                contRes--;
+                contResueltas.setText(" Resueltas:  " + "                              " + contRes);
+                break;
+        }
+        contIncidencias.setText("Incidencias:  " + "                              " + contIncid);
         incidencias.remove(ind);
         listaIncidencias.getItems().remove(ind);
     }
 
     public void cambiarEstado(Stage stage){
         int ind = listaIncidencias.getSelectionModel().getSelectedIndex();
+        
+        ComboBox<String> comboEstado = new ComboBox<>();
+        comboEstado.getItems().addAll("Abierta", "En proceso ", "Resuelta");
+        comboEstado.setValue("Abierta");
+        String estadoViejo = incidencias.get(ind).getEstado();
+        Label estadoNuevo = new Label("Nuevo estado de la incidencia:");
+        estadoNuevo.setStyle("-fx-border-color: black;" +
+                        "-fx-border-width: 1px;" +
+                        "-fx-border-radius: 10px;" +);
+
+        HBox estadoNuevoYViejo = new HBox (15,
+                new Label("Estado actual de la incidencia:\t" + 
+                estadoViejo),
+                estadoNuevo,
+                comboEstado
+        );
+
+        Button cambiar = new Button ("Cambiar");
+        cambiar.setOnAction(e ->confirmarCambio(stage, comboEstado.getValue(), estadoViejo, ind));
+        Button cancelar = new Button("Cancelar");
+        cancelar.setOnAction(e -> cancelar(stage));
+
+        HBox cambiarYcancelar = new HBox(10,
+                cambiar,
+                cancelar);
+
+        VBox cambioEstado = new VBox(50, estadoNuevoYViejo, cambiarYcancelar);
+        cambioEstado.setPadding(new Insets(60));
+        cambioEstado.setAlignment(Pos.CENTER);
+
+        Scene scene = new Scene(cambioEstado, 700, 250);
+        stage.setTitle("Nueva incidencia");
+        stage.setScene(scene);
+        stage.setResizable(false); // Esto lo he buscado en intrnet que no estaba seguro de cómo se hacía
+        stage.show();
+    }
+
+    private void limpiarRes(){
+      for (int ind = 0; ind < incidencias.size(); ind++) {
+        Incidencia inc = incidencias.get(ind);        
+            if (inc.getEstado().equals("Resuelta")){
+                borrar(ind);
+                ind--;
+            }
+        }
+    }
+
+    private void confirmarCambio (Stage stage, String nEstado, String vEstado, int i) {
+        if (nEstado != vEstado) {    //Esto está por si el ususario se le va y pone el mismo estado, así ahorramos rceursos
+            incidencias.get(i).setEstado(nEstado);
+            listaIncidencias.getItems().set(i,"[" + incidencias.get(i).getEstado() + "] " + incidencias.get(i).getNombre());
+            //Para cambiar el valor de los objetos de ListView no sabía que necesitaba set(), así que lo estaba intendo con un =
+            //y luego le he preguntado a la IA como se cambiaba y me ha mostrado el método set() de Listew.
+             switch (nEstado) {
+                case "Abierta":
+                    contAb++;
+                    break;
+                case "En proceso ":
+                    contEnProc++;
+                    break;
+                case "Resuelta":
+                    contRes++;
+                    break;
+            }
+            switch (vEstado) {
+                case "Abierta":
+                    contAb--;
+                    break;
+                case "En proceso ":
+                    contEnProc--;
+                    break;
+                case "Resuelta":
+                    contRes++;
+                    break;
+        }
+            contadorAbiertos.setText(" Abiertas:  " + "                                  " + contAb);
+            contEnProceso.setText(" En Proceso:  " + "                              " + contEnProc);
+            contResueltas.setText(" Resueltas:  " + "                              " + contRes);
+            //Actualizo los 3 contadores porque buscar cuáles 2 son los que 
+            //hay que cambiar seguramente es más complicado que hacer esto.
+        }
+
+        stage.close();
     }
 
     private void mostrarMensaje(String text) {
         mensaje.setText(text);
+    }
+
+        private void cancelar(Stage stage) {
+        stage.close();
     }
 
     public static void main(String[] args) {
