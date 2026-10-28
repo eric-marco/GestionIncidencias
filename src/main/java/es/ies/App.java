@@ -4,7 +4,9 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -15,6 +17,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class App extends Application {
 
@@ -108,7 +111,7 @@ public class App extends Application {
         limpiarResueltas.setPrefSize(130, 50);
         limpiarResueltas.setOnAction(e -> limpiarRes());
         eliminarIncidencia.setPrefSize(130, 50);
-        eliminarIncidencia.setOnAction(e -> borrar(listaIncidencias.getSelectionModel().getSelectedIndex()));
+        eliminarIncidencia.setOnAction(e -> borrar(listaIncidencias.getSelectionModel().getSelectedIndex(),1));
         botonesAccion.setAlignment(Pos.CENTER);
 
         HBox ListaYBotones = new HBox(20, listaIncidencias, botonesAccion);
@@ -134,6 +137,7 @@ public class App extends Application {
                         "-fx-border-width: 1px;" +
                         "-fx-border-radius: 10px;" +
                         "-fx-background-radius: 10px;" +
+                        "-fx-background-color:white;" +
                         "-fx-padding: 10px;");
 
         contResueltas.setStyle(
@@ -141,6 +145,7 @@ public class App extends Application {
                         "-fx-border-width: 1px;" +
                         "-fx-border-radius: 10px;" +
                         "-fx-background-radius: 10px;" +
+                        "-fx-background-color:white;" +
                         "-fx-padding: 10px;");
 
         contEnProceso.setStyle(
@@ -148,6 +153,7 @@ public class App extends Application {
                         "-fx-border-width: 1px;" +
                         "-fx-border-radius: 10px;" +
                         "-fx-background-radius: 10px;" +
+                        "-fx-background-color:white;" +
                         "-fx-padding: 10px;");
 
         contadorAbiertos.setStyle(
@@ -155,6 +161,7 @@ public class App extends Application {
                         "-fx-border-width: 1px;" +
                         "-fx-border-radius: 10px;" +
                         "-fx-background-radius: 10px;" +
+                        "-fx-background-color:white;" +
                         "-fx-padding: 10px;");
 
         VBox contadoresIzq = new VBox(5, contIncidencias, contResueltas);
@@ -272,9 +279,17 @@ public class App extends Application {
         stage.close();
     }
 
-    public void borrar(int ind) {
-        if (ind < 0){
-            mostrarError("Selecciona una incidencia\n para cambiar su estado.")
+    public void borrar(int ind, int llegada) {
+        if (llegada == 1){
+            if (ind < 0){
+                mostrarError("Selecciona una incidencia\n para poder borrarla.");
+            } else {
+                Alert confirmacion = new Alert(
+            Alert.AlertType.CONFIRMATION,
+            "¿Estás seguro de que quieres borrar esta incidencia?",
+            ButtonType.YES,
+            ButtonType.NO);
+            }
         }
         String estado = incidencias.get(ind).getEstado();
         contIncid--;
@@ -301,7 +316,7 @@ public class App extends Application {
     public void cambiarEstado(Stage stage) {
         int ind = listaIncidencias.getSelectionModel().getSelectedIndex();
         if (ind < 0){
-            mostrarError("Selecciona una incidencia\n para cambiar su estado.")
+            mostrarError("Selecciona una incidencia\n para poder cambiar su estado.");
         }
         ComboBox<String> comboEstado = new ComboBox<>();
         comboEstado.getItems().addAll("Abierta", "En proceso", "Resuelta");
@@ -352,13 +367,18 @@ public class App extends Application {
     private void limpiarRes() {
         //En este método me compliqué la vida yo solo intentando usar Iterator, y al final
         // la IA me dijo que usase un for y lo reolví inmediatamente.
+        Alert confirmacion = new Alert(
+            Alert.AlertType.CONFIRMATION,
+            "¿Estás seguro de que quieres borrar todas las incidencias resueltas?",
+            ButtonType.YES,
+            ButtonType.NO);
         for (int ind = 0; ind < incidencias.size(); ind++) {
             Incidencia inc = incidencias.get(ind);
             if (inc.getEstado().equals("Resuelta")) {
-                borrar(ind);
+                borrar(ind,2);
                 ind--;
             }
-            mostrarMensaje("Se han limpiado las incidencias resueltas");
+            mostrarMensaje("Se han limpiado las\n" +"incidencias resueltas");
         }
     }
 
@@ -401,7 +421,7 @@ public class App extends Application {
             // hay que cambiar seguramente es más complicado que hacer esto.
         }
         stage.close();
-        mostrarMensaje("Se ha cambiado el estado de la incidencia.");
+        mostrarMensaje("Se ha cambiado el\n"+ "estado de la incidencia.");
     }
 
     private void consultarInformacion(Stage stage, int i) {
@@ -481,8 +501,8 @@ public class App extends Application {
 
     private void mostrarError(String text) {
         notificaciones.setText(text);
-        notificaciones.setStyle("-fx-border:2px solid red;" + "-fx-background-color:#FF746D;" + 
-        "-fx-text-fill: red;" + "-fx-font-size: 16px;-fx-font-weight: bold;");
+        notificaciones.setStyle("-fx-border-color: red; -fx-border-style: solid; -fx-border-width: 2px;" +
+        "-fx-background-color:#FF746D;" + "-fx-text-fill: red;" + "-fx-font-size: 16px;-fx-font-weight: bold;");
     }
 
     private void cancelar(Stage stage) {
