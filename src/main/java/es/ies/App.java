@@ -24,7 +24,6 @@ public class App extends Application {
     private TextField ponerNombre;
     private TextArea ponerDescripcion;
     private Button botonAñadir;
-    private Label mensaje;
     private ListView<String> listaIncidencias;
     private ArrayList<Incidencia> incidencias;
     private Button consultarDatos;
@@ -47,12 +46,14 @@ public class App extends Application {
         titulo.setStyle("-fx-font-size: 30px; -fx-font-weight: bold;");
 
         comboFiltrar = new ComboBox<>();
-        comboFiltrar.getItems().addAll("Abierta", "En proceso ", "Resuelta", "Todas");
+        comboFiltrar.getItems().addAll("Abierta", "En proceso", "Resuelta", "Todas");
         comboFiltrar.setPromptText("Filtrar por estado");
+        comboFiltrar.setOnAction(e -> filtrar());
 
         cuadroBusqueda = new TextField();
         cuadroBusqueda.setPromptText("Buscar incidencia");
         cuadroBusqueda.setPrefWidth(300);
+        cuadroBusqueda.setOnKeyPressed(e -> buscarPorTexto());
 
         // He usado la IA para poner el margin a la izquierda del comboBox
         HBox.setMargin(
@@ -113,11 +114,11 @@ public class App extends Application {
         HBox ListaYBotones = new HBox(20, listaIncidencias, botonesAccion);
         ListaYBotones.setAlignment(Pos.CENTER);
 
-        contIncidencias = new Label("Incidencias:  " + "                              " + contIncid);
+        contIncidencias = new Label("Incidencias:  " + "                               " + contIncid);
         contResueltas = new Label(" Resueltas:  " + "                                 " + contRes);
         contEnProceso = new Label(" En proceso:  " + "                              " + contEnProc);
         contadorAbiertos = new Label(" Abiertas:  " + "                                   " + contAb);
-        notificaciones = new Label("Se ha guardado algo");
+        notificaciones = new Label();
 
         // He usado la IA para asegurarme de como poner un borde a los label y dejar el
         // radio del borde circular
@@ -126,6 +127,7 @@ public class App extends Application {
         contResueltas.setPrefWidth(200);
         contEnProceso.setPrefWidth(200);
         contadorAbiertos.setPrefWidth(200);
+        notificaciones.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
         contIncidencias.setStyle(
                 "-fx-border-color: black;" +
@@ -159,9 +161,8 @@ public class App extends Application {
         VBox contadoresDer = new VBox(5, contEnProceso, contadorAbiertos);
 
         HBox contadores = new HBox(20, contadoresIzq, contadoresDer);
-        HBox informacion = new HBox(200, contadores, notificaciones);
-        contadores.setAlignment(Pos.CENTER);
-        informacion.setAlignment(Pos.CENTER);
+        HBox informacion = new HBox(300, contadores, notificaciones);
+        informacion.setAlignment(Pos.CENTER_LEFT);
 
         VBox raiz = new VBox(14,
                 header,
@@ -170,12 +171,14 @@ public class App extends Application {
                 informacion);
 
         raiz.setPadding(new Insets(20));
+        raiz.setStyle("-fx-background-color: #dfe2e9;");
 
         // 16. Permitimos que la lista crezca verticalmente si crece la ventana
         VBox.setVgrow(listaIncidencias, Priority.ALWAYS);
 
         Scene scene = new Scene(raiz, 1000, 500);
         stage.setTitle("Gestor de incidencias"); // Le pongo título a la ventana
+        stage.setResizable(false);
         stage.setScene(scene); // Asigno el contenido (scene) a la ventana (stage)
         stage.show();
 
@@ -191,7 +194,7 @@ public class App extends Application {
         // a la incidencia despues de poner el nombre en el TextField campotexto
 
         ComboBox<String> comboEstado = new ComboBox<>();
-        comboEstado.getItems().addAll("Abierta", "En proceso ", "Resuelta");
+        comboEstado.getItems().addAll("Abierta", "En proceso", "Resuelta");
         comboEstado.setValue("Abierta");
 
         HBox nombreYestado = new HBox(30,
@@ -217,6 +220,7 @@ public class App extends Application {
                 ponerDescripcion.getText(),
                 comboEstado.getValue(),
                 stage));
+        aniadir.setDefaultButton(true);
         Button cancelar = new Button("Cancelar");
         cancelar.setOnAction(e -> cancelar(stage));
 
@@ -239,6 +243,9 @@ public class App extends Application {
     }
 
     private void confirmarAniadir(String nom, String desc, String estado, Stage stage) {
+        if (nom.trim().equals("") || nom == null) {
+            mostrarError("No se puede añadir\n"+"una incidencia sin nombre");
+        } else {    
         listaIncidencias.getItems().addAll("[" + estado + "] " + nom);
         contIncid++;
         contIncidencias.setText("Incidencias:  " + "                              " + contIncid);
@@ -250,7 +257,7 @@ public class App extends Application {
                 contAb++;
                 contadorAbiertos.setText(" Abiertas:  " + "                                  " + contAb);
                 break;
-            case "En proceso ":
+            case "En proceso":
                 contEnProc++;
                 contEnProceso.setText(" En Proceso:  " + "                              " + contEnProc);
                 break;
@@ -260,11 +267,15 @@ public class App extends Application {
                 break;
         }
         incidencias.add(new Incidencia(nom, desc, estado));
+        mostrarMensaje("Se ha añadido la incidencia.");
+        } 
         stage.close();
     }
 
     public void borrar(int ind) {
-        listaIncidencias.getSelectionModel().getSelectedIndex();
+        if (ind < 0){
+            mostrarError("Selecciona una incidencia\n para cambiar su estado.")
+        }
         String estado = incidencias.get(ind).getEstado();
         contIncid--;
         switch (estado) {
@@ -272,7 +283,7 @@ public class App extends Application {
                 contAb--;
                 contadorAbiertos.setText(" Abiertas:  " + "                                  " + contAb);
                 break;
-            case "En proceso ":
+            case "En proceso":
                 contEnProc--;
                 contEnProceso.setText(" En Proceso:  " + "                              " + contEnProc);
                 break;
@@ -284,11 +295,14 @@ public class App extends Application {
         contIncidencias.setText("Incidencias:  " + "                              " + contIncid);
         incidencias.remove(ind);
         listaIncidencias.getItems().remove(ind);
+        mostrarMensaje("Se ha borrado la incidencia");
     }
 
     public void cambiarEstado(Stage stage) {
         int ind = listaIncidencias.getSelectionModel().getSelectedIndex();
-
+        if (ind < 0){
+            mostrarError("Selecciona una incidencia\n para cambiar su estado.")
+        }
         ComboBox<String> comboEstado = new ComboBox<>();
         comboEstado.getItems().addAll("Abierta", "En proceso", "Resuelta");
         comboEstado.setValue(incidencias.get(ind).getEstado());
@@ -315,6 +329,7 @@ public class App extends Application {
 
         Button cambiar = new Button("Cambiar");
         cambiar.setOnAction(e -> confirmarCambio(stage, comboEstado.getValue(), incidencias.get(ind).getEstado(), ind));
+        cambiar.setDefaultButton(true);
         Button cancelar = new Button("Cancelar");
         cancelar.setOnAction(e -> cancelar(stage));
 
@@ -335,12 +350,15 @@ public class App extends Application {
     }
 
     private void limpiarRes() {
+        //En este método me compliqué la vida yo solo intentando usar Iterator, y al final
+        // la IA me dijo que usase un for y lo reolví inmediatamente.
         for (int ind = 0; ind < incidencias.size(); ind++) {
             Incidencia inc = incidencias.get(ind);
             if (inc.getEstado().equals("Resuelta")) {
                 borrar(ind);
                 ind--;
             }
+            mostrarMensaje("Se han limpiado las incidencias resueltas");
         }
     }
 
@@ -358,7 +376,7 @@ public class App extends Application {
                 case "Abierta":
                     contAb++;
                     break;
-                case "En proceso ":
+                case "En proceso":
                     contEnProc++;
                     break;
                 case "Resuelta":
@@ -369,7 +387,7 @@ public class App extends Application {
                 case "Abierta":
                     contAb--;
                     break;
-                case "En proceso ":
+                case "En proceso":
                     contEnProc--;
                     break;
                 case "Resuelta":
@@ -382,8 +400,8 @@ public class App extends Application {
             // Actualizo los 3 contadores porque buscar cuáles 2 son los que
             // hay que cambiar seguramente es más complicado que hacer esto.
         }
-
         stage.close();
+        mostrarMensaje("Se ha cambiado el estado de la incidencia.");
     }
 
     private void consultarInformacion(Stage stage, int i) {
@@ -426,13 +444,45 @@ public class App extends Application {
         stage.setTitle("Informacion de la incidencia");
         stage.setScene(scene);
         stage.sizeToScene();
-        stage.setResizable(false); // Esto lo he buscado en intrnet que no estaba seguro
+        stage.setResizable(false);
         stage.show();
 
     }
 
+    private void buscarPorTexto() {
+        String textoBusqueda = cuadroBusqueda.getText().toLowerCase();
+        listaIncidencias.getItems().clear();
+        for (Incidencia inc : incidencias) {
+            if (inc.getNombre().toLowerCase().contains(textoBusqueda)) {
+                listaIncidencias.getItems().add("[" + inc.getEstado() + "] " + inc.getNombre());
+            }
+        }
+    }
+
+    private void filtrar(){
+        String estadoFiltrar = comboFiltrar.getValue();
+        listaIncidencias.getItems().clear();
+        if (estadoFiltrar.equals("Todas")){
+            for (Incidencia incid : incidencias) {
+                listaIncidencias.getItems().add("[" + incid.getEstado() + "] " + incid.getNombre());
+            }
+        }
+        for (Incidencia incid : incidencias) {
+            if (incid.getEstado().equals(estadoFiltrar)) {
+                listaIncidencias.getItems().add("[" + incid.getEstado() + "] " + incid.getNombre());
+            }
+        }
+    }
+
     private void mostrarMensaje(String text) {
-        mensaje.setText(text);
+        notificaciones.setText(text);
+        notificaciones.setStyle("-fx-background-color:transparent;" + "-fx-text-fill:black;-fx-font-size: 16px;" + "-fx-font-weight: bold;");
+    }
+
+    private void mostrarError(String text) {
+        notificaciones.setText(text);
+        notificaciones.setStyle("-fx-border:2px solid red;" + "-fx-background-color:#FF746D;" + 
+        "-fx-text-fill: red;" + "-fx-font-size: 16px;-fx-font-weight: bold;");
     }
 
     private void cancelar(Stage stage) {
@@ -441,7 +491,5 @@ public class App extends Application {
 
     public static void main(String[] args) {
         launch();
-
-        // Comentario para probar primer push gitHub
     }
 }
