@@ -1,5 +1,7 @@
 package es.ies;
 
+import java.util.ArrayList;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,8 +18,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import java.util.ArrayList;
-import java.util.Optional;
 
 public class App extends Application {
 
@@ -64,6 +64,7 @@ public class App extends Application {
                 new Insets(0, 0, 0, 150));
 
         HBox header = new HBox(30, titulo, comboFiltrar, cuadroBusqueda);
+        header.setAlignment(Pos.CENTER);
 
         campoTexto = new TextField();
         campoTexto.setPromptText("Ingrese el nombre de la incidencia");
@@ -178,7 +179,7 @@ public class App extends Application {
                 informacion);
 
         raiz.setPadding(new Insets(20));
-        raiz.setStyle("-fx-background-color: #dfe2e9;");
+        raiz.setStyle("-fx-background-color: #DCE6F1");
 
         // 16. Permitimos que la lista crezca verticalmente si crece la ventana
         VBox.setVgrow(listaIncidencias, Priority.ALWAYS);
@@ -241,6 +242,7 @@ public class App extends Application {
                 descripcion,
                 aniadirYcancelar);
         formIncidencia.setPadding(new Insets(20));
+        formIncidencia.setStyle("-fx-background-color: #E8EDF5;");
 
         Scene scene = new Scene(formIncidencia, 900, 350);
         stage.setTitle("Nueva incidencia");
@@ -356,6 +358,7 @@ public class App extends Application {
         VBox cambioEstado = new VBox(50, zonaEstados, cambiarYcancelar);
         cambioEstado.setPadding(new Insets(60));
         cambioEstado.setAlignment(Pos.CENTER);
+        cambioEstado.setStyle("-fx-background-color: #E8EDF5;");
 
         Scene scene = new Scene(cambioEstado, 900, 220);
         stage.setTitle("Cambiar estado de la incidencia");
@@ -459,6 +462,7 @@ public class App extends Application {
         informacion.setPadding(new Insets(60));
         informacion.setAlignment(Pos.CENTER_LEFT);
         VBox.setVgrow(informacion, Priority.ALWAYS);
+        informacion.setStyle("-fx-background-color: #E8EDF5;");
 
         Scene scene = new Scene(informacion, 900, 220);
         stage.setTitle("Informacion de la incidencia");
