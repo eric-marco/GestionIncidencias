@@ -42,7 +42,6 @@ public class App extends Application {
     private Label contEnProceso;
     private Label contadorAbiertos;
     private Label notificaciones;
-    private int contIncid = 3;
     private int resueltas = 1;
     private int enProceso = 1;
     private int abiertas = 1;
@@ -137,7 +136,7 @@ public class App extends Application {
 
         // Creamos labels independientes para el título y el valor numérico
         Label lblIncidencias = new Label("Incidencias:");
-        contIncidencias = new Label(String.valueOf(contIncid));
+        contIncidencias = new Label(String.valueOf(3));
 
         Label lblResueltas = new Label("Resueltas:");
         contResueltas = new Label(String.valueOf(resueltas));
@@ -265,13 +264,12 @@ public class App extends Application {
             mostrarError("No se puede añadir\n" + "una incidencia sin nombre");
 
         } else {
-
-            listaIncidencias.getItems().addAll(new Incidencia(nom, desc, estado));
-            actualizarContadores();
             incidencias.add(new Incidencia(nom, desc, estado));
+            listaIncidencias.setItems(incidencias);
             mostrarMensaje("Se ha añadido la incidencia.");
 
         }
+        actualizarContadores();
         stage.close();
     }
 
@@ -294,28 +292,11 @@ public class App extends Application {
 
         }
         if (llegada == 2 || confirmar) {
-            String estado = incidencias.get(ind).getEstado();
-            contIncid--;
-
-            switch (estado) {
-                case "Abierta":
-                    abiertas--;
-                    contadorAbiertos.setText(" Abiertas:  " + abiertas);
-                    break;
-                case "En proceso":
-                    enProceso--;
-                    contEnProceso.setText(" En Proceso:  " + enProceso);
-                    break;
-                case "Resuelta":
-                    resueltas--;
-                    contResueltas.setText(" Resueltas:  " + resueltas);
-                    break;
-            }
-            contIncidencias.setText("Incidencias:  " + contIncid);
             incidencias.remove(ind);
-            listaIncidencias.getItems().remove(ind);
+            listaIncidencias.setItems(incidencias);
             mostrarMensaje("Se ha borrado la incidencia");
         }
+        actualizarContadores();
     }
 
     private void limpiarRes() {
@@ -399,15 +380,9 @@ public class App extends Application {
         if (nEstado != vEstado) { // Esto está por si el ususario se le va y pone el mismo estado, así ahorramos
                                   // recursos
             incidencias.get(i).setEstado(nEstado);
-
+            listaIncidencias.setItems(incidencias);
             actualizarContadores();
-            // listaIncidencias.getItems().set();
-            // Para cambiar el valor de los objetos de ListView no sabía que necesitaba
-            // set(), así que lo estaba intendo con un =
-            // y luego le he preguntado a la IA como se cambiaba y me ha mostrado el método
-            // set() de Listew.
-            // Actualizo los 3 contadores porque buscar cuáles 2 son los que
-            // hay que cambiar seguramente es más complicado que hacer esto.
+
         }
         stage.close();
         mostrarMensaje("Se ha cambiado el\n" + "estado de la incidencia.");
@@ -460,7 +435,7 @@ public class App extends Application {
 
     }
 
-private void buscarPorTexto() {
+    private void buscarPorTexto() {
 
     String textoBusqueda = cuadroBusqueda.getText().toLowerCase();
 
@@ -507,7 +482,29 @@ private void filtrar() {
     }
 
     private void actualizarContadores() {
-        
+        abiertas = 0;
+        resueltas = 0;
+        enProceso = 0;
+        for (Incidencia i: incidencias) {
+            switch (i.getEstado()) {
+                case "Abierta" :
+                    abiertas++;
+                    break;
+                    
+                case "En proceso": 
+                    enProceso++;
+                    break;
+                    
+                case "Resuelta":
+                    resueltas++;
+                    break;
+            }
+        }
+
+        contIncidencias.setText(String.valueOf(incidencias.size()));
+        contResueltas.setText(String.valueOf(resueltas));
+        contEnProceso.setText(String.valueOf(enProceso));
+        contadorAbiertos.setText(String.valueOf(abiertas));
     }
 
     private void cancelar(Stage stage) {
