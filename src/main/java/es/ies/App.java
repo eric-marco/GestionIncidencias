@@ -18,6 +18,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+<<<<<<< Updated upstream
+=======
+import java.util.ArrayList;
+import java.util.Optional;
+>>>>>>> Stashed changes
 
 public class App extends Application {
 
@@ -281,6 +286,7 @@ public class App extends Application {
         stage.close();
     }
 
+<<<<<<< Updated upstream
     public void borrar(int ind, int llegada) {
         if (llegada == 1){
             if (ind < 0){
@@ -292,6 +298,11 @@ public class App extends Application {
             ButtonType.YES,
             ButtonType.NO);
             }
+=======
+    public void borrar(int ind) {
+        if (ind < 0){
+            mostrarError("Selecciona una incidencia\n para cambiar su estado.");
+>>>>>>> Stashed changes
         }
         String estado = incidencias.get(ind).getEstado();
         contIncid--;
@@ -313,6 +324,8 @@ public class App extends Application {
         incidencias.remove(ind);
         listaIncidencias.getItems().remove(ind);
         mostrarMensaje("Se ha borrado la incidencia");
+
+    
     }
 
     public void cambiarEstado(Stage stage) {
@@ -363,18 +376,22 @@ public class App extends Application {
         Scene scene = new Scene(cambioEstado, 900, 220);
         stage.setTitle("Cambiar estado de la incidencia");
         stage.setScene(scene);
-        stage.setResizable(false); // Esto lo he buscado en intrnet que no estaba seguro
+        stage.setResizable(false);
         stage.show();
     }
 
     private void limpiarRes() {
         //En este método me compliqué la vida yo solo intentando usar Iterator, y al final
+<<<<<<< Updated upstream
         // la IA me dijo que usase un for y lo reolví inmediatamente.
         Alert confirmacion = new Alert(
             Alert.AlertType.CONFIRMATION,
             "¿Estás seguro de que quieres borrar todas las incidencias resueltas?",
             ButtonType.YES,
             ButtonType.NO);
+=======
+        // la IA me dijo que usase un for y lo resolví inmediatamente.
+>>>>>>> Stashed changes
         for (int ind = 0; ind < incidencias.size(); ind++) {
             Incidencia inc = incidencias.get(ind);
             if (inc.getEstado().equals("Resuelta")) {
