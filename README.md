@@ -5,3 +5,5 @@ Estructura de la Interfaz
 Cabecera: Título y filtros distribuidos mediante un Region elástico.
 
 Formulario: Campo de texto para el registro rápido de incidencias.
+
+Panel Inferior: Cajas de contadores y barra de notificaciones separadas por un Region elástico.
