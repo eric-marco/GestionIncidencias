@@ -1,7 +1,6 @@
 package es.ies;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -19,6 +18,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import java.util.Optional;
 
 public class App extends Application {
 
@@ -57,7 +57,7 @@ public class App extends Application {
         cuadroBusqueda = new TextField();
         cuadroBusqueda.setPromptText("Buscar incidencia");
         cuadroBusqueda.setPrefWidth(300);
-        cuadroBusqueda.setOnKeyReleased(e -> buscarPorTexto());
+        cuadroBusqueda.setOnKeyPressed(e -> buscarPorTexto());
 
         // He usado la IA para poner el margin a la izquierda del comboBox
         HBox.setMargin(
@@ -89,14 +89,16 @@ public class App extends Application {
         // He usado IA para añadir las incidencias, pero vamos, que es lo mismo que en
         // un ComboBox
 
+        listaIncidencias.getItems().addAll(
+                "[Abierta] Error al iniciar sesión",
+                "[En proceso] No carga la página principal",
+                "[Resuelta] Error al guardar los cambios");
         incidencias = new ArrayList<>();
         incidencias.add(new Incidencia("Error al iniciar sesión", "No se puede inicar seisón por motivos deconocidos",
                 "Abierta"));
         incidencias.add(new Incidencia("No carga la página principal",
                 "La página principal del programa no carga y no sabemos por qué", "En proceso"));
         incidencias.add(new Incidencia("Error al guardar", "Al guardar aparecía una ventana de error", "Resuelta"));
-
-        refrescarLista();
 
         VBox botonesAccion = new VBox(30,
                 consultarDatos = new Button("Consultar datos"),
@@ -116,7 +118,6 @@ public class App extends Application {
 
         HBox ListaYBotones = new HBox(20, listaIncidencias, botonesAccion);
         ListaYBotones.setAlignment(Pos.CENTER);
-        HBox.setHgrow(listaIncidencias, Priority.ALWAYS);
 
         contIncidencias = new Label("Incidencias:  " + "                               " + contIncid);
         contResueltas = new Label(" Resueltas:  " + "                                 " + contRes);
@@ -182,7 +183,7 @@ public class App extends Application {
         raiz.setStyle("-fx-background-color: #DCE6F1");
 
         // 16. Permitimos que la lista crezca verticalmente si crece la ventana
-        VBox.setVgrow(ListaYBotones, Priority.ALWAYS);
+        VBox.setVgrow(listaIncidencias, Priority.ALWAYS);
 
         Scene scene = new Scene(raiz, 1000, 500);
         stage.setTitle("Gestor de incidencias"); // Le pongo título a la ventana
@@ -252,11 +253,9 @@ public class App extends Application {
     }
 
     private void confirmarAniadir(String nom, String desc, String estado, Stage stage) {
-        if (nom == null || nom.trim().equals("")) {
+        if (nom.trim().equals("") || nom == null) {
             mostrarError("No se puede añadir\n"+"una incidencia sin nombre");
-            stage.close();
-            return;
-        }
+        } else {    
         listaIncidencias.getItems().addAll("[" + estado + "] " + nom);
         contIncid++;
         contIncidencias.setText("Incidencias:  " + "                              " + contIncid);
@@ -279,23 +278,20 @@ public class App extends Application {
         }
         incidencias.add(new Incidencia(nom, desc, estado));
         mostrarMensaje("Se ha añadido la incidencia.");
+        } 
         stage.close();
     }
 
     public void borrar(int ind, int llegada) {
-        if (ind < 0){
-            mostrarError("Selecciona una incidencia\n para poder borrarla.");
-            return;
-        }
         if (llegada == 1){
-            Alert confirmacion = new Alert(
-                Alert.AlertType.CONFIRMATION,
-                "¿Estás seguro de que quieres borrar esta incidencia?",
-                ButtonType.YES,
-                ButtonType.NO);
-            Optional<ButtonType> resp = confirmacion.showAndWait();
-            if (resp.isEmpty() || resp.get() != ButtonType.YES) {
-                return;
+            if (ind < 0){
+                mostrarError("Selecciona una incidencia\n para poder borrarla.");
+            } else {
+                Alert confirmacion = new Alert(
+            Alert.AlertType.CONFIRMATION,
+            "¿Estás seguro de que quieres borrar esta incidencia?",
+            ButtonType.YES,
+            ButtonType.NO);
             }
         }
         String estado = incidencias.get(ind).getEstado();
@@ -317,16 +313,15 @@ public class App extends Application {
         contIncidencias.setText("Incidencias:  " + "                              " + contIncid);
         incidencias.remove(ind);
         listaIncidencias.getItems().remove(ind);
-        if (llegada == 1) {
-            mostrarMensaje("Se ha borrado la incidencia");
-        }
+        mostrarMensaje("Se ha borrado la incidencia");
+
+    
     }
 
     public void cambiarEstado(Stage stage) {
         int ind = listaIncidencias.getSelectionModel().getSelectedIndex();
         if (ind < 0){
             mostrarError("Selecciona una incidencia\n para poder cambiar su estado.");
-            return;
         }
         ComboBox<String> comboEstado = new ComboBox<>();
         comboEstado.getItems().addAll("Abierta", "En proceso", "Resuelta");
@@ -378,33 +373,18 @@ public class App extends Application {
     private void limpiarRes() {
         //En este método me compliqué la vida yo solo intentando usar Iterator, y al final
         // la IA me dijo que usase un for y lo resolví inmediatamente.
-        Alert confirmacion = new Alert(
-            Alert.AlertType.CONFIRMATION,
-            "¿Estás seguro de que quieres borrar todas las incidencias resueltas?",
-            ButtonType.YES,
-            ButtonType.NO);
-        Optional<ButtonType> resp = confirmacion.showAndWait();
-        if (resp.isEmpty() || resp.get() != ButtonType.YES) {
-            return;
-        }
-        boolean borrado = false;
-        for (int ind = incidencias.size() - 1; ind >= 0; ind--) {
+        for (int ind = 0; ind < incidencias.size(); ind++) {
             Incidencia inc = incidencias.get(ind);
             if (inc.getEstado().equals("Resuelta")) {
                 borrar(ind,2);
-                borrado = true;
+                ind--;
             }
-        }
-        if (borrado) {
             mostrarMensaje("Se han limpiado las\n" +"incidencias resueltas");
         }
     }
 
     private void confirmarCambio(Stage stage, String nEstado, String vEstado, int i) {
-        if (nEstado == null) {
-            nEstado = vEstado;
-        }
-        if (!nEstado.equals(vEstado)) { // Esto está por si el ususario se le va y pone el mismo estado, así ahorramos
+        if (nEstado != vEstado) { // Esto está por si el ususario se le va y pone el mismo estado, así ahorramos
                                   // recursos
             incidencias.get(i).setEstado(nEstado);
             listaIncidencias.getItems().set(i,
@@ -432,7 +412,7 @@ public class App extends Application {
                     contEnProc--;
                     break;
                 case "Resuelta":
-                    contRes--;
+                    contRes++;
                     break;
             }
             contadorAbiertos.setText(" Abiertas:  " + "                                  " + contAb);
@@ -446,10 +426,7 @@ public class App extends Application {
     }
 
     private void consultarInformacion(Stage stage, int i) {
-        if (i < 0) {
-            mostrarError("Selecciona una incidencia\n para consultar sus datos.");
-            return;
-        }
+
         Label nombreIncidencia = new Label("Nombre: ");
         Label textoNombre = new Label(incidencias.get(i).getNombre());
         textoNombre.setWrapText(true);
@@ -496,13 +473,9 @@ public class App extends Application {
 
     private void buscarPorTexto() {
         String textoBusqueda = cuadroBusqueda.getText().toLowerCase();
-        String estadoFiltro = comboFiltrar.getValue();
         listaIncidencias.getItems().clear();
         for (Incidencia inc : incidencias) {
-            boolean coincideTexto = inc.getNombre().toLowerCase().contains(textoBusqueda);
-            boolean coincideEstado = (estadoFiltro == null || estadoFiltro.equals("Todas"))
-                    || inc.getEstado().equals(estadoFiltro);
-            if (coincideTexto && coincideEstado) {
+            if (inc.getNombre().toLowerCase().contains(textoBusqueda)) {
                 listaIncidencias.getItems().add("[" + inc.getEstado() + "] " + inc.getNombre());
             }
         }
@@ -511,18 +484,15 @@ public class App extends Application {
     private void filtrar(){
         String estadoFiltrar = comboFiltrar.getValue();
         listaIncidencias.getItems().clear();
-        for (Incidencia incid : incidencias) {
-            if (estadoFiltrar == null || estadoFiltrar.equals("Todas")
-                    || incid.getEstado().equals(estadoFiltrar)) {
+        if (estadoFiltrar.equals("Todas")){
+            for (Incidencia incid : incidencias) {
                 listaIncidencias.getItems().add("[" + incid.getEstado() + "] " + incid.getNombre());
             }
         }
-    }
-
-    private void refrescarLista() {
-        listaIncidencias.getItems().clear();
-        for (Incidencia inc : incidencias) {
-            listaIncidencias.getItems().add("[" + inc.getEstado() + "] " + inc.getNombre());
+        for (Incidencia incid : incidencias) {
+            if (incid.getEstado().equals(estadoFiltrar)) {
+                listaIncidencias.getItems().add("[" + incid.getEstado() + "] " + incid.getNombre());
+            }
         }
     }
 
